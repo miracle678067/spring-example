@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--引入jdbc属性文件-->
+    <context:property-placeholder location="jdbc.properties"/>
+    <!--扫描所有的注解bean-->
+    <context:component-scan base-package="com.example.spring.demo2"/>
+    <!--配置数据源-->
+    <bean id="dataSource2" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driverClass}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <!--配置jdbc模板-->
+    <bean id="jdbcTemplate2" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="dataSource2"/>
+    </bean>
+    <!--配置事务管理器-->
+    <bean id="transactionManager2" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource2"/>
+    </bean>
+    <!--配置业务层的代理，对service层进行增强-->
+    <bean id="accountServiceProxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <!--配置代理目标-->
+        <property name="target" ref="accountServiceImpl2"/>
+        <!--注入事务管理器-->
+        <property name="transactionManager" ref="transactionManager2"/>
+        <!--注入事务属性-->
+        <property name="transactionAttributes">
+            <props>
+                <!--PROPAGATION_REQUIRED表示支持当前事务，如果不存在则新建一个-->
+                <prop key="transfer">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
+     </bean>
+</beans>

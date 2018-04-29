@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--引入jdbc属性文件-->
+    <context:property-placeholder location="jdbc.properties"/>
+    <!--扫描所有的注解bean-->
+    <context:component-scan base-package="com.example.spring.demo3"/>
+    <!--配置数据源-->
+    <bean id="dataSource3" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driverClass}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <!--配置jdbc模板-->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="dataSource3"/>
+    </bean>
+    <!--配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource3"/>
+    </bean>
+    <!--配置事务的通知-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="transfer" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+    <!--配置切面-->
+    <aop:config>
+        <!--配置切入点-->
+        <!--第一个*表示返回值，+表示及其子类，第二个*表示子包，..表示任意参数-->
+        <aop:pointcut id="pointcut1" expression="execution(* com.example.spring.demo3.AccountService3+.*(..))"/>
+        <!--配置切面-->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut1"/>
+    </aop:config>
+</beans>
